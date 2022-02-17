@@ -1,0 +1,165 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewBag.Title = "Alumno";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+<h2></h2>
+<div class="form-group" style="display:none;">
+    <input id="txtAlumnoId" class="form-control" name="AlumnoId" />
+</div>
+<div class="form-group">
+    <label for="Name">Name : </label>
+    <input id="txtAlumnoName" class="form-control" name="Name" />
+</div>
+<div class="form-group">
+    <label for="Email">Email : </label>
+    <input id="txtAlumnoEmail" class="form-control" name="Email" />
+</div>
+<div class="form-group">
+    <label for="Phone">Phone : </label>
+    <input id="txtAlumnoPhone" class="form-control" name="Phone" />
+</div>
+<div class="form-group">
+    <label for="Status">Status : </label>
+    <input id="txtAlumnoStatus" class="form-control" name="Status" />
+</div>
+<div class="form-group">
+    <button id="btnSave" class="btn btn-sm btn-primary">Save</button>
+    <button id="btnAddNew" class="btn btn-sm btn-primary">Add New</button>
+</div>
+
+<button onclick="GetAllAlumnos()" class="btn btn-primary">Load Alumnos</button>
+
+<h2>Alumno List</h2>
+<table id="tblAlumno" class="table table-sm table-striped table-bordered m-2">
+    <thead>
+        <tr>
+            <th>Alumno Id</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+    });
+
+    function GetAllAlumnos() {
+        console.log('Holaaaa');
+        clean();
+        $.getJSON("/AlumnoItems/GetAllAlumnoItems", function (Alumnos) {
+            $("#tblAlumno tbody tr").remove();
+            console.log(Alumnos);
+            $.map(Alumnos, function (Alumno) {
+                $("#tblAlumno tbody").append("<tr>"
+                    + " <td>" + Alumno.id + "</td>"
+                    + " <td>" + Alumno.nombre + "</td>"
+                    + " <td>" + Alumno.email + "</td>"
+                    + " <td>" + Alumno.phone + "</td>"
+                    + " <td>" + Alumno.status + "</td>"
+                    + " <td>"
+                    + "     <button class='btn-success' onclick='Edit(" + Alumno.id + ")' style='margin-right:5px;'>Edit</button>"
+                    + "     <button class='btn-danger' onclick='Delete(" + Alumno.id + ")'>Delete</button>"
+                    + " </td>"
+                    + " </tr>");
+            });
+        });
+    };
+
+    function Edit(AlumnoId) {
+        if (AlumnoId > 0) {
+            $.getJSON("/AlumnoItems/GetById?alumnoItemId=" + AlumnoId, function (Alumno) {
+                $("#txtAlumnoId").val(Alumno.id);
+                $("#txtAlumnoName").val(Alumno.nombre);
+                $("#txtAlumnoEmail").val(Alumno.email);
+                $("#txtAlumnoPhone").val(Alumno.phone);
+                $("#txtAlumnoStatus").val(Alumno.status);
+            });
+        }
+    }
+    function Delete(AlumnoId) {
+        if (AlumnoId > 0) {
+            $.ajax({
+                url: '/AlumnoItems/Delete?alumnoItemId=' + AlumnoId,
+                type: 'DELETE',
+                dataType: 'json',
+                success: function (data) {
+                    GetAllAlumnos();
+                },
+                error: function (ex) {
+                    console.log("Error in Operation. "+ex.Message);
+                },
+            });
+        }
+    }
+
+    $("#btnSave").click(function () {
+        var oAlumno = {
+            Id: $("#txtAlumnoId").val(),
+            Nombre: $("#txtAlumnoName").val(),
+            Email: $("#txtAlumnoEmail").val(),
+            Phone: $("#txtAlumnoPhone").val(),
+            Status: $("#txtAlumnoStatus").val()
+        };
+        
+        
+        console.log("Este es el ID del Alumno"+oAlumno.Id)
+        console.log("/AlumnoItems/AddAlumnoItem?alumnoItemId="+oAlumno.Id)
+
+         $.post("/AlumnoItems/AddAlumnoItem?alumnoItemId="+oAlumno.Id, oAlumno)
+            .done(function (data) {
+                GetAllAlumnos();
+            });
+
+        return;
+        if(oAlumno.Id != 0){
+
+            $.ajax("/AlumnoItems/UpdateAlumnoItem/"+oAlumno.Id, {
+                type : "PUT",
+                data : JSON.stringify(oAlumno),
+                contentType : "application/json",
+                success : function() {
+                    GetAllAlumnos();
+                }
+            });
+
+
+            //$.put("/AlumnoItems/UpdateAlumnoItem/"+oAlumno.Id, oAlumno)
+            //.done(function (data) {
+            //    GetAllAlumnos();
+            //});
+
+        }else{
+            $.post("/AlumnoItems/AddAlumnoItem/", oAlumno)
+            .done(function (data) {
+                GetAllAlumnos();
+            });
+        }
+
+
+    });
+
+    $("#btnAddNew").click(function () {
+        clean();
+    });
+
+    function clean(){
+        $("#txtAlumnoId").val(0);
+        $("#txtAlumnoName").val("");
+        $("#txtAlumnoEmail").val("");
+        $("#txtAlumnoPhone").val("");
+        $("#txtAlumnoStatus").val("");
+    }
+</script>
